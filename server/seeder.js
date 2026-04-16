@@ -9,7 +9,11 @@
  *  admin@lab.dz          / admin123     (role: admin)
  *  head@lab.dz           / head123      (role: head_of_lab)
  *  member@lab.dz         / member123    (role: member, linked to Prof. Karim Benali)
+ *
+ * Note: there is no visitor account — visitors browse the public site
+ * freely without any registration or login.
  */
+
 const dotenv = require("dotenv");
 dotenv.config();
 
@@ -23,9 +27,9 @@ const News        = require("./models/News");
 
 connectDB();
 
-
+// ─────────────────────────────────────────────────────────────────────────────
 //  SAMPLE DATA
-
+// ─────────────────────────────────────────────────────────────────────────────
 
 const departmentsData = [
   {
@@ -46,7 +50,7 @@ const departmentsData = [
 ];
 
 const membersData = [
-  // CS members
+  // ── Computer Science ────────────────────────────────────────────────────────
   {
     fullName:       "Prof. Karim Benali",
     email:          "k.benali@lab.dz",
@@ -66,6 +70,7 @@ const membersData = [
     academicRole:   "Doctor",
     specialization: "Natural Language Processing",
     bio:            "Expert in Arabic NLP and text classification.",
+    // Doctor — no PhD degree upload needed
   },
   {
     fullName:          "Yacine Meziane",
@@ -79,6 +84,9 @@ const membersData = [
     thesisExpectedEnd: new Date("2025-09-01"),
     thesisProgress:    65,
     thesisPhase:       "Research",
+    // Degree uploaded and verified (sample)
+    phdDegreeUrl:      "https://example.com/degrees/yacine-meziane-degree.pdf",
+    phdDegreeVerified: true,
   },
   {
     fullName:       "Prof. Sonia Bouzid",
@@ -109,8 +117,11 @@ const membersData = [
     thesisExpectedEnd: new Date("2026-01-15"),
     thesisProgress:    30,
     thesisPhase:       "Literature Review",
+    // Degree uploaded but not yet verified by admin
+    phdDegreeUrl:      "https://example.com/degrees/lina-khelif-degree.pdf",
+    phdDegreeVerified: false,
   },
-  // MATH members
+  // ── Mathematics ─────────────────────────────────────────────────────────────
   {
     fullName:       "Prof. Hassan Merabet",
     email:          "h.merabet@lab.dz",
@@ -132,6 +143,9 @@ const membersData = [
     thesisExpectedEnd: new Date("2026-09-01"),
     thesisProgress:    20,
     thesisPhase:       "Literature Review",
+    // No degree uploaded yet
+    phdDegreeUrl:      "",
+    phdDegreeVerified: false,
   },
 ];
 
@@ -143,9 +157,8 @@ const teamsData = [
     researchFocus:    "Deep Learning, Computer Vision, NLP",
     description:      "Cutting-edge AI solutions for Arabic language processing and medical imaging.",
     researchProgress: 70,
-    progressNote:     "Arabic BERT model training completed; medical imaging pipeline in validation phase.",
-    deptIndex:        0, // CS
-    leaderName_:      "Prof. Karim Benali",
+    progressNote:     "Arabic BERT model training complete; medical imaging pipeline in validation.",
+    deptIndex:        0,
     memberNames:      ["Prof. Karim Benali", "Dr. Amira Hadj", "Yacine Meziane"],
     activeProjects: [
       {
@@ -172,7 +185,7 @@ const teamsData = [
     description:      "Advancing digital security through cryptographic research and decentralised systems.",
     researchProgress: 45,
     progressNote:     "IoT framework prototype complete; ZK-SNARK integration ongoing.",
-    deptIndex:        0, // CS
+    deptIndex:        0,
     memberNames:      ["Prof. Sonia Bouzid", "Dr. Omar Chikh", "Lina Khelif"],
     activeProjects: [
       {
@@ -191,13 +204,13 @@ const teamsData = [
     researchFocus:    "Algebraic Topology, Bayesian Statistics, Data Analysis",
     description:      "Bridging pure mathematics and real-world data science applications.",
     researchProgress: 35,
-    progressNote:     "Literature review phase complete; beginning experimental design.",
-    deptIndex:        1, // MATH
+    progressNote:     "Literature review complete; experimental design underway.",
+    deptIndex:        1,
     memberNames:      ["Prof. Hassan Merabet", "Sara Bensalem"],
     activeProjects: [
       {
         title:         "Bayesian Inference for Healthcare Data",
-        description:   "Applying Bayesian methods to analyse high-dimensional clinical datasets.",
+        description:   "Applying Bayesian methods to high-dimensional clinical datasets.",
         startDate:     new Date("2023-09-01"),
         status:        "Active",
         fundingSource: "National Science Foundation",
@@ -207,7 +220,6 @@ const teamsData = [
   },
 ];
 
-// Publications — teamIndex and approvalStatus set here
 const publicationsData = [
   {
     title:           "Arabic Text Classification Using BERT-Based Transformer Models: A Comparative Study",
@@ -217,7 +229,7 @@ const publicationsData = [
     publicationType: "Journal Article",
     pdfLink:         "https://example.com/pub1.pdf",
     doi:             "10.1109/TNNLS.2024.1234567",
-    abstract:        "A comparative study of BERT-based models for Arabic text classification achieving state-of-the-art results on multiple benchmarks.",
+    abstract:        "A comparative study of BERT-based models for Arabic text classification.",
     tags:            ["nlp", "arabic", "bert", "ai"],
     citations:       12,
     approvalStatus:  "approved",
@@ -231,7 +243,7 @@ const publicationsData = [
     publisher:       "ICML Workshop on Healthcare AI",
     publicationType: "Conference Paper",
     pdfLink:         "https://example.com/pub2.pdf",
-    abstract:        "A federated learning framework with differential privacy for training medical imaging models across distributed hospital networks.",
+    abstract:        "A federated learning framework with differential privacy for medical imaging.",
     tags:            ["federated-learning", "privacy", "machine-learning", "healthcare"],
     citations:       5,
     approvalStatus:  "approved",
@@ -246,7 +258,7 @@ const publicationsData = [
     publicationType: "Journal Article",
     pdfLink:         "https://example.com/pub3.pdf",
     doi:             "10.1145/ACM.2023.987654",
-    abstract:        "A comprehensive survey of ZKP systems covering SNARKs, STARKs, and Bulletproofs and their applications in blockchain privacy.",
+    abstract:        "A comprehensive survey of ZKP systems in blockchain privacy.",
     tags:            ["blockchain", "privacy", "cryptography", "security"],
     citations:       28,
     approvalStatus:  "approved",
@@ -260,7 +272,7 @@ const publicationsData = [
     publisher:       "IEEE Internet of Things Journal",
     publicationType: "Journal Article",
     doi:             "10.1109/JIOT.2023.456789",
-    abstract:        "A suite of lightweight cryptographic protocols for resource-constrained IoT devices balancing security and performance.",
+    abstract:        "Lightweight cryptographic protocols for resource-constrained IoT devices.",
     tags:            ["iot", "cryptography", "security", "lightweight"],
     citations:       19,
     approvalStatus:  "approved",
@@ -268,13 +280,12 @@ const publicationsData = [
     teamIndex:       1,
   },
   {
-    // Example pending publication — waiting for admin approval
     title:           "Topological Data Analysis for Medical Imaging",
     authors:         ["Hassan Merabet", "Sara Bensalem"],
     year:            2024,
     publisher:       "Journal of Applied Mathematics",
     publicationType: "Journal Article",
-    abstract:        "Applying topological data analysis techniques to identify patterns in medical imaging datasets.",
+    abstract:        "Applying topological data analysis to identify patterns in medical imaging.",
     tags:            ["mathematics", "topology", "medical-imaging"],
     citations:       0,
     approvalStatus:  "pending",
@@ -288,7 +299,7 @@ const newsData = [
     headline:  "Lab Wins Best Paper Award at ICML 2024",
     date:      new Date("2024-07-15"),
     summary:   "Our federated learning research was recognised as best paper at ICML 2024.",
-    fullStory: "We are proud to announce that our paper on Federated Learning with Differential Privacy for Medical Imaging received the Best Paper Award at the ICML 2024 Healthcare AI Workshop. This is the result of outstanding work by PhD student Yacine Meziane under the supervision of Prof. Karim Benali.",
+    fullStory: "We are proud to announce that our paper on Federated Learning with Differential Privacy for Medical Imaging received the Best Paper Award at the ICML 2024 Healthcare AI Workshop.",
     category:  "Award",
     author:    "Lab Admin",
     tags:      ["award", "icml", "federated-learning"],
@@ -296,20 +307,20 @@ const newsData = [
   {
     headline:  "New Research Project Funded by DGRSDT",
     date:      new Date("2024-06-01"),
-    summary:   "Our Arabic Sentiment Analysis project received a 3-year grant from the DGRSDT.",
-    fullStory: "The Directorate General of Scientific Research and Technological Development (DGRSDT) has approved a 3-year research grant for the Arabic Sentiment Analysis at Scale project. The project will develop large-scale NLP tools for Algerian Arabic dialects and Modern Standard Arabic.",
+    summary:   "Our Arabic Sentiment Analysis project received a 3-year DGRSDT grant.",
+    fullStory: "The Directorate General of Scientific Research and Technological Development has approved a 3-year research grant for the Arabic Sentiment Analysis at Scale project.",
     category:  "Announcement",
     author:    "Prof. Karim Benali",
     tags:      ["funding", "arabic", "nlp", "dgrsdt"],
   },
 ];
 
-
+// ─────────────────────────────────────────────────────────────────────────────
 //  SEED
-
+// ─────────────────────────────────────────────────────────────────────────────
 const importData = async () => {
   try {
-    console.log("\nClearing existing data...");
+    console.log("\n🗑️   Clearing existing data...");
     await Promise.all([
       User.deleteMany(),
       Member.deleteMany(),
@@ -320,21 +331,21 @@ const importData = async () => {
     ]);
 
     // 1. Departments
-    console.log("Seeding departments...");
+    console.log("🏛️   Seeding departments...");
     const createdDepts = await Department.insertMany(departmentsData);
 
     // 2. Members
-    console.log("Seeding members...");
+    console.log("👥  Seeding members...");
     const createdMembers = await Member.insertMany(membersData);
 
-    // Build name 
+    // Build name → ObjectId map
     const byName = {};
     createdMembers.forEach((m) => { byName[m.fullName] = m._id; });
 
     // 3. Teams — assign department, leader, and member IDs
-    console.log("Seeding teams...");
+    console.log("🏢  Seeding teams...");
     const teamsToInsert = teamsData.map((t) => {
-      const { deptIndex, memberNames, leaderName_, ...rest } = t;
+      const { deptIndex, memberNames, ...rest } = t;
       return {
         ...rest,
         department:  createdDepts[deptIndex]._id,
@@ -344,8 +355,8 @@ const importData = async () => {
     });
     const createdTeams = await Team.insertMany(teamsToInsert);
 
-    // 4. Users — admin, head_of_lab, and one linked member
-    console.log("Seeding user accounts...");
+    // 4. User accounts — admin, head_of_lab, and one linked member
+    console.log("🔐  Seeding user accounts...");
 
     const adminUser = await User.create({
       name:       "Lab Admin",
@@ -373,28 +384,39 @@ const importData = async () => {
       authStatus:    "approved",
       memberProfile: karimProfile._id,
     });
-    
     await Member.findByIdAndUpdate(karimProfile._id, { user: memberUser._id });
 
-    // 5. Publications — assign team IDs, submittedBy admin
-    console.log("Seeding publications...");
+    // Also update the verified PhD degree records with the admin who verified them
+    const yacine = createdMembers.find((m) => m.fullName === "Yacine Meziane");
+    if (yacine) {
+      await Member.findByIdAndUpdate(yacine._id, {
+        phdDegreeVerifiedBy: adminUser._id,
+        phdDegreeVerifiedAt: new Date("2024-01-10"),
+      });
+    }
+
+    // 5. Publications
+    console.log("📄  Seeding publications...");
     const pubsToInsert = publicationsData.map((p) => {
       const { teamIndex, ...rest } = p;
       return {
         ...rest,
         team:        createdTeams[teamIndex]._id,
         submittedBy: adminUser._id,
-        ...(rest.approvalStatus === "approved" && { reviewedBy: adminUser._id, reviewedAt: new Date() }),
+        ...(rest.approvalStatus === "approved" && {
+          reviewedBy: adminUser._id,
+          reviewedAt: new Date(),
+        }),
       };
     });
     await Publication.insertMany(pubsToInsert);
 
     // 6. News
-    console.log("Seeding news...");
+    console.log("📰  Seeding news...");
     await News.insertMany(newsData);
 
     console.log(`
-     Seed complete!
+  Seed complete!
    ${createdDepts.length}   departments
    ${createdMembers.length}   members
    ${createdTeams.length}   teams
@@ -403,10 +425,12 @@ const importData = async () => {
    3   user accounts
 
  Login credentials
- ─────────────────────────────────
+ ──────────────────────────────────────
    admin@lab.dz    /  admin123    (admin)
    head@lab.dz     /  head123     (head_of_lab)
-   member@lab.dz   /  member123   (member)
+   member@lab.dz   /  member123   (member — Prof. Karim Benali)
+
+ Visitors browse the public site freely — no account needed.
 `);
     process.exit(0);
   } catch (err) {
@@ -415,9 +439,9 @@ const importData = async () => {
   }
 };
 
-
+// ─────────────────────────────────────────────────────────────────────────────
 //  DELETE
-
+// ─────────────────────────────────────────────────────────────────────────────
 const deleteData = async () => {
   try {
     await Promise.all([
@@ -431,7 +455,7 @@ const deleteData = async () => {
     console.log("All collections wiped");
     process.exit(0);
   } catch (err) {
-    console.error(" Delete error:", err.message);
+    console.error("Delete error:", err.message);
     process.exit(1);
   }
 };

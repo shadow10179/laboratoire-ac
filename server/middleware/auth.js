@@ -1,7 +1,17 @@
 const jwt  = require("jsonwebtoken");
 const User = require("../models/User");
 
-
+/**
+ * protect
+ * ───────
+ * Verifies the JWT from "Authorization: Bearer <token>".
+ * Attaches the full User document to req.user on success.
+ * Blocks with 401 / 403 on any failure.
+ *
+ * NOTE: Visitors browse the public site without any account or token.
+ * The protect middleware is only applied to routes that require a login
+ * (member, admin, or head_of_lab).
+ */
 const protect = async (req, res, next) => {
   let token;
 
@@ -58,7 +68,19 @@ const protect = async (req, res, next) => {
   }
 };
 
-
+/**
+ * authorise(...roles)
+ * ───────────────────
+ * Must come AFTER protect in the middleware chain.
+ * Passes only if req.user.role is in the allowed list.
+ *
+ * Valid roles: "member", "admin", "head_of_lab"
+ *
+ * Examples:
+ *   protect, authorise("admin")
+ *   protect, authorise("admin", "head_of_lab")
+ *   protect, authorise("admin", "member")
+ */
 const authorise = (...roles) => (req, res, next) => {
   if (!roles.includes(req.user.role)) {
     return res.status(403).json({
@@ -69,7 +91,14 @@ const authorise = (...roles) => (req, res, next) => {
   next();
 };
 
-
+/**
+ * optionalAuth
+ * ────────────
+ * Attaches req.user if a valid, approved token is present.
+ * Does NOT block the request when no token is provided.
+ * Use on public endpoints that can optionally personalise the response
+ * for logged-in members.
+ */
 const optionalAuth = async (req, res, next) => {
   let token;
 
