@@ -8,10 +8,10 @@
  * ────────────────────────
  *  admin@lab.dz          / admin123     (role: admin)
  *  head@lab.dz           / head123      (role: head_of_lab)
- *  member@lab.dz         / member123    (role: member, linked to Prof. Karim Benali)
+ *  member@lab.dz         / member123    (role: member,       linked to Prof. Karim Benali)
+ *  leader@lab.dz         / leader123    (role: team_leader,  linked to Prof. Sonia Bouzid)
  *
- * Note: there is no visitor account — visitors browse the public site
- * freely without any registration or login.
+ * Visitors browse the public site freely — no account needed.
  */
 
 const dotenv = require("dotenv");
@@ -70,7 +70,6 @@ const membersData = [
     academicRole:   "Doctor",
     specialization: "Natural Language Processing",
     bio:            "Expert in Arabic NLP and text classification.",
-    // Doctor — no PhD degree upload needed
   },
   {
     fullName:          "Yacine Meziane",
@@ -84,9 +83,6 @@ const membersData = [
     thesisExpectedEnd: new Date("2025-09-01"),
     thesisProgress:    65,
     thesisPhase:       "Research",
-    // Degree uploaded and verified (sample)
-    phdDegreeUrl:      "https://example.com/degrees/yacine-meziane-degree.pdf",
-    phdDegreeVerified: true,
   },
   {
     fullName:       "Prof. Sonia Bouzid",
@@ -117,9 +113,6 @@ const membersData = [
     thesisExpectedEnd: new Date("2026-01-15"),
     thesisProgress:    30,
     thesisPhase:       "Literature Review",
-    // Degree uploaded but not yet verified by admin
-    phdDegreeUrl:      "https://example.com/degrees/lina-khelif-degree.pdf",
-    phdDegreeVerified: false,
   },
   // ── Mathematics ─────────────────────────────────────────────────────────────
   {
@@ -143,13 +136,10 @@ const membersData = [
     thesisExpectedEnd: new Date("2026-09-01"),
     thesisProgress:    20,
     thesisPhase:       "Literature Review",
-    // No degree uploaded yet
-    phdDegreeUrl:      "",
-    phdDegreeVerified: false,
   },
 ];
 
-// Teams — deptIndex and memberNames filled dynamically
+// Teams — deptIndex and memberNames resolved dynamically
 const teamsData = [
   {
     teamName:         "AI & Machine Learning Research Group",
@@ -204,7 +194,7 @@ const teamsData = [
     researchFocus:    "Algebraic Topology, Bayesian Statistics, Data Analysis",
     description:      "Bridging pure mathematics and real-world data science applications.",
     researchProgress: 35,
-    progressNote:     "Literature review complete; experimental design underway.",
+    progressNote:     "Literature review phase complete; beginning experimental design.",
     deptIndex:        1,
     memberNames:      ["Prof. Hassan Merabet", "Sara Bensalem"],
     activeProjects: [
@@ -220,80 +210,83 @@ const teamsData = [
   },
 ];
 
+// Publications — field name is now "type" (was publicationType)
 const publicationsData = [
   {
-    title:           "Arabic Text Classification Using BERT-Based Transformer Models: A Comparative Study",
-    authors:         ["Karim Benali", "Amira Hadj", "Yacine Meziane"],
-    year:            2024,
-    publisher:       "IEEE Transactions on Neural Networks and Learning Systems",
-    publicationType: "Journal Article",
-    pdfLink:         "https://example.com/pub1.pdf",
-    doi:             "10.1109/TNNLS.2024.1234567",
-    abstract:        "A comparative study of BERT-based models for Arabic text classification.",
-    tags:            ["nlp", "arabic", "bert", "ai"],
-    citations:       12,
-    approvalStatus:  "approved",
-    isPublished:     true,
-    teamIndex:       0,
+    title:          "Arabic Text Classification Using BERT-Based Transformer Models: A Comparative Study",
+    authors:        ["Karim Benali", "Amira Hadj", "Yacine Meziane"],
+    year:           2024,
+    publisher:      "IEEE Transactions on Neural Networks and Learning Systems",
+    type:           "Journal Article",           // ← renamed from publicationType
+    pdfLink:        "https://example.com/pub1.pdf",
+    doi:            "10.1109/TNNLS.2024.1234567",
+    abstract:       "A comparative study of BERT-based models for Arabic text classification achieving state-of-the-art results on multiple benchmarks.",
+    tags:           ["nlp", "arabic", "bert", "ai"],
+    citations:      12,
+    approvalStatus: "approved",
+    isPublished:    true,
+    teamIndex:      0,
   },
   {
-    title:           "Federated Learning with Differential Privacy for Medical Imaging",
-    authors:         ["Yacine Meziane", "Karim Benali"],
-    year:            2024,
-    publisher:       "ICML Workshop on Healthcare AI",
-    publicationType: "Conference Paper",
-    pdfLink:         "https://example.com/pub2.pdf",
-    abstract:        "A federated learning framework with differential privacy for medical imaging.",
-    tags:            ["federated-learning", "privacy", "machine-learning", "healthcare"],
-    citations:       5,
-    approvalStatus:  "approved",
-    isPublished:     true,
-    teamIndex:       0,
+    title:          "Federated Learning with Differential Privacy for Medical Imaging",
+    authors:        ["Yacine Meziane", "Karim Benali"],
+    year:           2024,
+    publisher:      "ICML Workshop on Healthcare AI",
+    type:           "Conference Paper",          // ← renamed from publicationType
+    pdfLink:        "https://example.com/pub2.pdf",
+    abstract:       "A federated learning framework with differential privacy for training medical imaging models across distributed hospital networks.",
+    tags:           ["federated-learning", "privacy", "machine-learning", "healthcare"],
+    citations:      5,
+    approvalStatus: "approved",
+    isPublished:    true,
+    teamIndex:      0,
   },
   {
-    title:           "Zero-Knowledge Proofs for Scalable Blockchain Privacy: A Survey",
-    authors:         ["Sonia Bouzid", "Lina Khelif", "Omar Chikh"],
-    year:            2023,
-    publisher:       "ACM Computing Surveys",
-    publicationType: "Journal Article",
-    pdfLink:         "https://example.com/pub3.pdf",
-    doi:             "10.1145/ACM.2023.987654",
-    abstract:        "A comprehensive survey of ZKP systems in blockchain privacy.",
-    tags:            ["blockchain", "privacy", "cryptography", "security"],
-    citations:       28,
-    approvalStatus:  "approved",
-    isPublished:     true,
-    teamIndex:       1,
+    title:          "Zero-Knowledge Proofs for Scalable Blockchain Privacy: A Survey",
+    authors:        ["Sonia Bouzid", "Lina Khelif", "Omar Chikh"],
+    year:           2023,
+    publisher:      "ACM Computing Surveys",
+    type:           "Journal Article",           // ← renamed from publicationType
+    pdfLink:        "https://example.com/pub3.pdf",
+    doi:            "10.1145/ACM.2023.987654",
+    abstract:       "A comprehensive survey of ZKP systems covering SNARKs, STARKs, and Bulletproofs and their applications in blockchain privacy.",
+    tags:           ["blockchain", "privacy", "cryptography", "security"],
+    citations:      28,
+    approvalStatus: "approved",
+    isPublished:    true,
+    teamIndex:      1,
   },
   {
-    title:           "Lightweight Cryptographic Protocols for Constrained IoT Devices",
-    authors:         ["Omar Chikh", "Sonia Bouzid"],
-    year:            2023,
-    publisher:       "IEEE Internet of Things Journal",
-    publicationType: "Journal Article",
-    doi:             "10.1109/JIOT.2023.456789",
-    abstract:        "Lightweight cryptographic protocols for resource-constrained IoT devices.",
-    tags:            ["iot", "cryptography", "security", "lightweight"],
-    citations:       19,
-    approvalStatus:  "approved",
-    isPublished:     true,
-    teamIndex:       1,
+    title:          "Lightweight Cryptographic Protocols for Constrained IoT Devices",
+    authors:        ["Omar Chikh", "Sonia Bouzid"],
+    year:           2023,
+    publisher:      "IEEE Internet of Things Journal",
+    type:           "Journal Article",           // ← renamed from publicationType
+    doi:            "10.1109/JIOT.2023.456789",
+    abstract:       "A suite of lightweight cryptographic protocols for resource-constrained IoT devices balancing security and performance.",
+    tags:           ["iot", "cryptography", "security", "lightweight"],
+    citations:      19,
+    approvalStatus: "approved",
+    isPublished:    true,
+    teamIndex:      1,
   },
   {
-    title:           "Topological Data Analysis for Medical Imaging",
-    authors:         ["Hassan Merabet", "Sara Bensalem"],
-    year:            2024,
-    publisher:       "Journal of Applied Mathematics",
-    publicationType: "Journal Article",
-    abstract:        "Applying topological data analysis to identify patterns in medical imaging.",
-    tags:            ["mathematics", "topology", "medical-imaging"],
-    citations:       0,
-    approvalStatus:  "pending",
-    isPublished:     false,
-    teamIndex:       2,
+    // Pending — waiting for admin approval
+    title:          "Topological Data Analysis for Medical Imaging",
+    authors:        ["Hassan Merabet", "Sara Bensalem"],
+    year:           2024,
+    publisher:      "Journal of Applied Mathematics",
+    type:           "Journal Article",           // ← renamed from publicationType
+    abstract:       "Applying topological data analysis techniques to identify patterns in medical imaging datasets.",
+    tags:           ["mathematics", "topology", "medical-imaging"],
+    citations:      0,
+    approvalStatus: "pending",
+    isPublished:    false,
+    teamIndex:      2,
   },
 ];
 
+// News — uses "image" field (renamed from imageUrl in the model)
 const newsData = [
   {
     headline:  "Lab Wins Best Paper Award at ICML 2024",
@@ -302,15 +295,17 @@ const newsData = [
     fullStory: "We are proud to announce that our paper on Federated Learning with Differential Privacy for Medical Imaging received the Best Paper Award at the ICML 2024 Healthcare AI Workshop.",
     category:  "Award",
     author:    "Lab Admin",
+    image:     "https://picsum.photos/seed/news1/600/300",   // ← field is now "image"
     tags:      ["award", "icml", "federated-learning"],
   },
   {
     headline:  "New Research Project Funded by DGRSDT",
     date:      new Date("2024-06-01"),
-    summary:   "Our Arabic Sentiment Analysis project received a 3-year DGRSDT grant.",
+    summary:   "Our Arabic Sentiment Analysis project received a 3-year grant from the DGRSDT.",
     fullStory: "The Directorate General of Scientific Research and Technological Development has approved a 3-year research grant for the Arabic Sentiment Analysis at Scale project.",
     category:  "Announcement",
     author:    "Prof. Karim Benali",
+    image:     "https://picsum.photos/seed/news2/600/300",
     tags:      ["funding", "arabic", "nlp", "dgrsdt"],
   },
 ];
@@ -355,7 +350,7 @@ const importData = async () => {
     });
     const createdTeams = await Team.insertMany(teamsToInsert);
 
-    // 4. User accounts — admin, head_of_lab, and one linked member
+    // 4. User accounts
     console.log("🔐  Seeding user accounts...");
 
     const adminUser = await User.create({
@@ -374,7 +369,7 @@ const importData = async () => {
       authStatus: "approved",
     });
 
-    // Link a member account to Prof. Karim Benali's Member profile
+    // Member account → Prof. Karim Benali
     const karimProfile = createdMembers.find((m) => m.fullName === "Prof. Karim Benali");
     const memberUser = await User.create({
       name:          "Prof. Karim Benali",
@@ -386,14 +381,17 @@ const importData = async () => {
     });
     await Member.findByIdAndUpdate(karimProfile._id, { user: memberUser._id });
 
-    // Also update the verified PhD degree records with the admin who verified them
-    const yacine = createdMembers.find((m) => m.fullName === "Yacine Meziane");
-    if (yacine) {
-      await Member.findByIdAndUpdate(yacine._id, {
-        phdDegreeVerifiedBy: adminUser._id,
-        phdDegreeVerifiedAt: new Date("2024-01-10"),
-      });
-    }
+    // Team leader account → Prof. Sonia Bouzid (shows "My Work" in the frontend)
+    const soniaProfile = createdMembers.find((m) => m.fullName === "Prof. Sonia Bouzid");
+    const leaderUser = await User.create({
+      name:          "Prof. Sonia Bouzid",
+      email:         "leader@lab.dz",
+      password:      "leader123",
+      role:          "team_leader",
+      authStatus:    "approved",
+      memberProfile: soniaProfile._id,
+    });
+    await Member.findByIdAndUpdate(soniaProfile._id, { user: leaderUser._id });
 
     // 5. Publications
     console.log("📄  Seeding publications...");
@@ -416,19 +414,20 @@ const importData = async () => {
     await News.insertMany(newsData);
 
     console.log(`
-  Seed complete!
+ Seed complete!
    ${createdDepts.length}   departments
    ${createdMembers.length}   members
    ${createdTeams.length}   teams
    ${pubsToInsert.length}   publications  (${pubsToInsert.filter(p => p.approvalStatus === "approved").length} approved, ${pubsToInsert.filter(p => p.approvalStatus === "pending").length} pending)
    ${newsData.length}   news articles
-   3   user accounts
+   4   user accounts
 
  Login credentials
- ──────────────────────────────────────
+ ──────────────────────────────────────────────────────────
    admin@lab.dz    /  admin123    (admin)
    head@lab.dz     /  head123     (head_of_lab)
    member@lab.dz   /  member123   (member — Prof. Karim Benali)
+   leader@lab.dz   /  leader123   (team_leader — Prof. Sonia Bouzid)
 
  Visitors browse the public site freely — no account needed.
 `);
@@ -452,7 +451,7 @@ const deleteData = async () => {
       Publication.deleteMany(),
       News.deleteMany(),
     ]);
-    console.log("All collections wiped");
+    console.log(" All collections wiped");
     process.exit(0);
   } catch (err) {
     console.error("Delete error:", err.message);

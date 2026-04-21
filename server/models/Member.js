@@ -51,17 +51,14 @@ const memberSchema = new mongoose.Schema(
 
     // ── PhD Degree verification ───────────────────────────────────────────────
     /*
-     * When a member registers (or later from their profile), they upload
-     * their PhD degree document.  The file is stored externally (e.g. on
-     * Cloudinary or an S3-compatible bucket) and only the public URL is
-     * saved here.
+     * phdDegreeUrl      → Public URL of the degree document (for post-registration
+     *                     uploads via PUT /api/members/:id/phd-degree).
+     * phdDegreeVerified → true once an admin has reviewed and verified it.
+     * phdDegreeVerifiedAt / phdDegreeVerifiedBy → audit trail.
      *
-     * phdDegreeUrl      → URL of the uploaded degree document (PDF / image).
-     *                     Set by the member via PUT /api/members/:id/phd-degree.
-     * phdDegreeVerified → true once an admin has reviewed the document and
-     *                     marked it as verified via PUT /api/members/:id/verify-degree.
-     * phdDegreeVerifiedAt → timestamp of when the admin verified it.
-     * phdDegreeVerifiedBy → ObjectId of the admin who verified it.
+     * Note: at registration time the degree is sent as base64 directly and
+     * stored in User._registrationMeta.degree. Once approved, the admin may
+     * set phdDegreeUrl to a hosted URL if desired. The two mechanisms coexist.
      */
     phdDegreeUrl: {
       type: String,
@@ -91,12 +88,28 @@ const memberSchema = new mongoose.Schema(
       max: 100,
       default: 0,
     },
+    /*
+     * thesisPhase enum includes all values used by the frontend:
+     *
+     *  Backend-canonical    Frontend label (fakeData.js)
+     *  ─────────────────    ────────────────────────────
+     *  Proposal             —
+     *  Literature Review    Literature Review  ✓
+     *  Research             —
+     *  Experimentation      Experimentation    (added for frontend)
+     *  Data Collection      Data Collection    (added for frontend)
+     *  Writing              Writing            ✓
+     *  Defense              —
+     *  Completed            —
+     */
     thesisPhase: {
       type: String,
       enum: [
         "Proposal",
         "Literature Review",
         "Research",
+        "Experimentation",
+        "Data Collection",
         "Writing",
         "Defense",
         "Completed",

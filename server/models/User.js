@@ -29,17 +29,20 @@ const userSchema = new mongoose.Schema(
      * ──────────────────────────────────────────────────────────────────────
      * member       → lab member linked to a Member profile.
      *                Can edit own profile and submit publications for approval.
-     *                Visitors browse the public site with NO account required —
-     *                the visitor role has been removed entirely.
+     * team_leader  → a member who also leads a research team.
+     *                Has access to the "My Work" dashboard in the frontend.
+     *                Extends member privileges.
      * admin        → full control: approve/reject members & publications,
      *                manage teams/departments, update progress bars,
      *                verify PhD degrees.
      * head_of_lab  → read-only high-level overview of all departments,
      *                teams, members and research progress.
+     *
+     * Visitors browse the public site with NO account required.
      */
     role: {
       type: String,
-      enum: ["member", "admin", "head_of_lab"],
+      enum: ["member", "team_leader", "admin", "head_of_lab"],
       default: "member",
     },
 
@@ -50,7 +53,7 @@ const userSchema = new mongoose.Schema(
      * approved  → admin accepted; member can log in
      * rejected  → admin rejected; login is blocked
      *
-     * Accounts created directly by an admin (admin / head_of_lab)
+     * Accounts created directly by an admin (admin / head_of_lab / team_leader)
      * are always set to "approved" immediately.
      */
     authStatus: {
@@ -65,11 +68,35 @@ const userSchema = new mongoose.Schema(
       default: "",
     },
 
-    // Only set when role === "member"
+    // Only set when role === "member" or "team_leader"
     memberProfile: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Member",
       default: null,
+    },
+
+    /*
+     * _registrationMeta
+     * ──────────────────────────────────────────────────────────────────────
+     * Temporary storage for extra fields the applicant submits at
+     * registration time. Visible to the admin in the approval queue.
+     * Moved to the Member document when the admin approves the account,
+     * then cleared from here.
+     *
+     * degree: { name, data } — base64-encoded PDF uploaded at registration.
+     *   The admin previews it in an <iframe> directly from the base64 data
+     *   without any external file storage service required.
+     */
+    _registrationMeta: {
+      academicRole:   { type: String, default: "" },
+      specialization: { type: String, default: "" },
+      age:            { type: Number, default: null },
+      faculty:        { type: String, default: "" },
+      // Degree document uploaded at registration as a base64 PDF
+      degree: {
+        name: { type: String, default: "" },  // original filename
+        data: { type: String, default: "" },  // base64 data URI (data:application/pdf;base64,...)
+      },
     },
 
     isActive:  { type: Boolean, default: true },

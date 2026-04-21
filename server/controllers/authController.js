@@ -25,20 +25,25 @@ const sendTokenResponse = (user, statusCode, res) => {
 /**
  * @desc    Member self-registration.
  *          Account starts as "pending" — admin must approve before login.
- *          Members may optionally provide extra profile fields and a PhD
- *          degree URL at registration time. These are stored on the Member
- *          profile that is created when the admin approves the account.
  *
- *          Visitors do NOT register — they browse the public site freely
- *          with no account required.
+ *          The frontend (Register.jsx) collects:
+ *            - name, email, password       (required)
+ *            - title (academicRole)        (optional)
+ *            - degree: { name, data }      (base64 PDF object — stored in
+ *                                           _registrationMeta.degree so the
+ *                                           admin can preview it in an <iframe>
+ *                                           without any cloud storage)
+ *
+ *          Visitors do NOT register — they browse the public site freely.
  *
  * @route   POST /api/auth/register
  * @access  Public
  * @body    {
- *            name, email, password,          ← required
- *            academicRole, specialization,   ← optional, used on approval
- *            age, faculty,                   ← optional, used on approval
- *            phdDegreeUrl                    ← optional, stored on Member
+ *            name, email, password,                  ← required
+ *            title,                                  ← frontend "Title" selector
+ *            academicRole, specialization,           ← alternative keys accepted
+ *            age, faculty,
+ *            degree: { name: string, data: string }  ← base64 PDF from frontend
  *          }
  */
 const register = async (req, res, next) => {
@@ -47,12 +52,14 @@ const register = async (req, res, next) => {
       name,
       email,
       password,
-      // Optional profile fields forwarded at registration time
+      // The frontend sends "title" for the academic role selection
+      title,
       academicRole,
       specialization,
       age,
       faculty,
-      phdDegreeUrl,
+      // Base64 degree PDF uploaded at registration:  { name: "file.pdf", data: "data:application/pdf;base64,..." }
+      degree,
     } = req.body;
 
     if (!name || !email || !password) {
@@ -66,24 +73,24 @@ const register = async (req, res, next) => {
       throw new Error("An account with this email already exists");
     }
 
-    // Create the User account in "pending" state.
-    // Store extra profile fields in the User document temporarily so the
-    // admin can see them in the approval queue without needing a Member
-    // document yet.  A proper Member document is created on approval.
-    const user = await User.create({
+    // "title" (from the frontend's Title selector) maps to academicRole
+    const resolvedAcademicRole = title || academicRole || "";
+
+    await User.create({
       name,
       email,
       password,
       role:       "member",
       authStatus: "pending",
-      // Store registration-time profile hints directly on User so admin can
-      // review them. These are moved to the Member document on approval.
       _registrationMeta: {
-        academicRole:   academicRole   || "",
+        academicRole:   resolvedAcademicRole,
         specialization: specialization || "",
         age:            age            || null,
         faculty:        faculty        || "",
-        phdDegreeUrl:   phdDegreeUrl   || "",
+        // Store the degree object as-is so the admin can render it in an iframe
+        degree: degree
+          ? { name: degree.name || "", data: degree.data || "" }
+          : { name: "", data: "" },
       },
     });
 
@@ -91,7 +98,7 @@ const register = async (req, res, next) => {
     res.status(201).json({
       success: true,
       message:
-        "Registration submitted successfully. Your account is pending admin approval. You will be notified once approved.",
+        "Registration submitted successfully. Your account and degree document are awaiting admin review. You will be notified once approved.",
     });
   } catch (err) {
     next(err);
@@ -214,9 +221,10 @@ const updateMe = async (req, res, next) => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * @desc    Get all pending registrations (oldest first)
- *          Returns the stored _registrationMeta so the admin can review
- *          the applicant's submitted academic info and PhD degree URL.
+ * @desc    Get all pending registrations (oldest first).
+ *          Returns _registrationMeta so the admin can see the submitted
+ *          academic role and preview the degree PDF in an <iframe> using
+ *          the base64 data stored in _registrationMeta.degree.data.
  * @route   GET /api/auth/pending
  * @access  Private — admin
  */
@@ -238,10 +246,9 @@ const getPendingRegistrations = async (req, res, next) => {
  *          Flow:
  *          1. Mark the User as approved.
  *          2a. If memberProfileId provided → link to an existing Member doc.
- *          2b. Otherwise → auto-create a Member doc using the registration
- *              meta (academicRole, age, faculty, phdDegreeUrl, etc.) that
- *              the applicant submitted at registration time.
- *          3. Clear the temporary _registrationMeta from the User doc.
+ *          2b. Otherwise → auto-create a Member doc from _registrationMeta.
+ *          3. Clear _registrationMeta from the User doc (degree already stored,
+ *             no need to keep the base64 blob on the User document forever).
  *
  * @route   PUT /api/auth/approve/:id
  * @access  Private — admin
@@ -273,7 +280,6 @@ const approveRegistration = async (req, res, next) => {
       faculty,
     } = req.body;
 
-    // Pull registration-time meta submitted by the applicant
     const meta = user._registrationMeta || {};
 
     user.authStatus = "approved";
@@ -289,8 +295,7 @@ const approveRegistration = async (req, res, next) => {
       user.memberProfile = member._id;
       await Member.findByIdAndUpdate(member._id, { user: user._id });
     } else {
-      // Auto-create a Member profile.
-      // Admin-provided body values take precedence over registration meta.
+      // Auto-create a Member profile from registration meta.
       const member = await Member.create({
         user:           user._id,
         fullName:       user.name,
@@ -299,13 +304,14 @@ const approveRegistration = async (req, res, next) => {
         specialization: specialization || meta.specialization || "",
         age:            age            ?? meta.age            ?? null,
         faculty:        faculty        || meta.faculty        || "",
-        // Preserve the PhD degree URL the applicant uploaded at registration
-        phdDegreeUrl:   meta.phdDegreeUrl || "",
+        // The degree is stored in _registrationMeta as base64 for admin preview.
+        // We do NOT copy it to phdDegreeUrl (which expects a public URL).
+        // The admin can later upload a hosted URL via PUT /api/members/:id/phd-degree.
       });
       user.memberProfile = member._id;
     }
 
-    // Remove temporary registration meta now that it has been used
+    // Clear the registration meta to free up storage (degree blob can be large)
     user._registrationMeta = undefined;
 
     await user.save({ validateBeforeSave: false });
@@ -407,10 +413,9 @@ const getUserById = async (req, res, next) => {
 
 /**
  * @desc    Create a user with a specific role directly.
- *          Used by the admin to create admin or head_of_lab accounts.
- *          These accounts skip the approval flow and are immediately active.
- *          Note: "visitor" role no longer exists — visitors browse freely
- *          with no account required.
+ *          Used by the admin to create admin, head_of_lab, team_leader
+ *          or member accounts that skip the approval flow.
+ *          Visitors do NOT have accounts.
  * @route   POST /api/auth/users
  * @access  Private — admin
  * @body    { name, email, password, role, memberProfileId? }
@@ -424,10 +429,10 @@ const createUser = async (req, res, next) => {
       throw new Error("name, email, password and role are all required");
     }
 
-    // "visitor" role has been removed — only these three roles exist
-    if (!["admin", "head_of_lab", "member"].includes(role)) {
+    // Valid roles — "team_leader" added to support the frontend My Work page
+    if (!["admin", "head_of_lab", "member", "team_leader"].includes(role)) {
       res.status(400);
-      throw new Error("role must be one of: admin, head_of_lab, member");
+      throw new Error("role must be one of: admin, head_of_lab, member, team_leader");
     }
 
     const exists = await User.findOne({ email });
@@ -437,7 +442,7 @@ const createUser = async (req, res, next) => {
     }
 
     let memberProfile = null;
-    if (role === "member" && memberProfileId) {
+    if ((role === "member" || role === "team_leader") && memberProfileId) {
       const member = await Member.findById(memberProfileId);
       if (!member) {
         res.status(404);
@@ -498,9 +503,9 @@ const updateUser = async (req, res, next) => {
     const { role, isActive, authStatus, memberProfileId } = req.body;
 
     if (role) {
-      if (!["admin", "head_of_lab", "member"].includes(role)) {
+      if (!["admin", "head_of_lab", "member", "team_leader"].includes(role)) {
         res.status(400);
-        throw new Error("role must be one of: admin, head_of_lab, member");
+        throw new Error("role must be one of: admin, head_of_lab, member, team_leader");
       }
       user.role = role;
     }
